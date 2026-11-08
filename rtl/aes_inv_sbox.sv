@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 // AES inverse S-box (FIPS-197 Figure 14).
 // Combinational LUT, 8-bit input, 8-bit output.
 

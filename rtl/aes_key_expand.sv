@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 // AES-128 key expansion (FIPS-197 section 5.2).
 // One round-key per cycle, computed combinationally from the previous round-key.
 //

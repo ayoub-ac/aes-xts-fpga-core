@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 // AES single-round combinational logic (FIPS-197 section 5).
 //
 // Forward round (encrypt):

@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 //
 // GF(2^128) multiply-by-alpha (XTS-AES tweak progression, IEEE Std
 // 1619-2018 §5.1).

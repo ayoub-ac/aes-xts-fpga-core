@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 // AES forward S-box (FIPS-197 Figure 7).
 // Combinational LUT, 8-bit input, 8-bit output.
 

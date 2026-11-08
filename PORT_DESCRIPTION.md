@@ -134,7 +134,6 @@ For a sector with `N` bytes (`F = floor(N/16)` full blocks plus
 | Total (rough)                  | `~13 + F * 13 + (T > 0 ? 14 : 0)` cycles |
 
 For a 4-KB sector (32 blocks, aligned), this is about 430 cycles, i.e.
-~4.3 microseconds at 100 MHz. The throughput is dominated by the AES
-core (12 cycles per block); the Premium tier ships a pipelined AES that
-brings each block down to 1 cycle steady-state, lifting the end-to-end
-throughput by roughly 10x.
+~4.3 microseconds at 100 MHz (unverified estimates). The throughput is
+dominated by the AES core (12 cycles per block). No pipelined AES
+variant is included in this repository.

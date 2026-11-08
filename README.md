@@ -1,28 +1,27 @@
 # aes-xts-fpga-core
 
 [![License: GPL-3.0-or-later or commercial](https://img.shields.io/badge/license-GPL--3.0%20%7C%20commercial-blue.svg)](LICENSE.md)
-[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](#verification)
-[![IEEE 1619-2018 vectors](https://img.shields.io/badge/IEEE%201619--2018-vectors%20pass-blue.svg)](#verification)
-[![Lint](https://img.shields.io/badge/Verilator%20lint-clean-brightgreen.svg)](#build--test)
+
+> **Status: experimental and unverified.** This core was written with AI assistance and has not been independently verified in simulation regressions, formal proofs or hardware. Claims in this repository about standards compliance, test results, timing and resource use are unverified. It has not been validated under NIST CAVP/CMVP and has not been evaluated for side-channel or fault-injection resistance. Do not use it in production or security-sensitive designs without your own verification. No support or maintenance is provided.
 
 A small, synthesisable AES-XTS-128 IP core in SystemVerilog. Implements
-IEEE Std 1619-2018 end-to-end (AES-128 cipher in tweakable-block-cipher
+the IEEE 1619 algorithm (not validated): AES-128 cipher in tweakable-block-cipher
 mode for full-disk encryption: tweak derivation `T = AES(k2, sector)`,
 GF(2^128) alpha-multiplier for tweak progression, ciphertext stealing
-for non-aligned sectors). Targets iCE40, ECP5, Xilinx 7-series,
+for non-aligned sectors. Targets iCE40, ECP5, Xilinx 7-series,
 Cyclone V, and Tang Nano 9K.
 
-The core is verified end-to-end against the IEEE 1619-2018 Annex B
-published vectors and 100 random vectors cross-checked against Python's
-`cryptography.hazmat.primitives.ciphers.modes.XTS`. No FPGA hardware is
-required for the test suite.
+IEEE 1619-2018 Annex B published vectors and 100 random vectors
+generated with Python's `cryptography.hazmat.primitives.ciphers.modes.XTS`
+are included in the testbench; results not independently confirmed. No
+FPGA hardware is required to run the test suite.
 
 ## What XTS is for, and why not GCM/CTR
 
 XTS-AES is the **storage-encryption mode** standardised by IEEE Std
-1619-2018. It is what BitLocker, FileVault 2, LUKS / dm-crypt,
-eCryptfs, ZFS native encryption, and OPAL self-encrypting drives use to
-encrypt every sector on every commercial encrypted SSD shipped today.
+1619-2018. It is widely used for disk encryption, for example by
+BitLocker, FileVault 2, LUKS / dm-crypt, and OPAL self-encrypting
+drives.
 
 The reason storage cannot use AES-GCM or AES-CTR is **random access**:
 filesystems read and write individual 4-KB sectors out of order, and
@@ -52,11 +51,9 @@ threat model.
 | Microsoft BitLocker                   | XTS-AES-128 / -256           |
 | Apple FileVault 2                     | XTS-AES-128                  |
 | Linux LUKS2 / dm-crypt                | XTS-AES-128 / -256 (default) |
-| eCryptfs (per-file, lower layer)      | XTS-AES                      |
-| ZFS native encryption                 | XTS-AES (alongside CCM/GCM)  |
 | Android File-Based Encryption (FBE)   | XTS-AES                      |
 | TCG OPAL self-encrypting drives       | XTS-AES-128 / -256           |
-| Every consumer NVMe SSD with hw crypto| XTS-AES                      |
+| Many self-encrypting NVMe SSDs        | XTS-AES                      |
 
 ## Quickstart
 
@@ -86,7 +83,7 @@ flow. Python 3 with `cryptography` for `make regen_vectors`.
           aes_core                          gf128_mul_alpha
        (FIPS-197 AES-128,              (IEEE 1619-2018 §5.1
         iterative, 12 cycles            alpha-multiply,
-        per block, shared encrypt/      combinational, ~25 LUT4
+        per block, shared encrypt/      combinational, est. ~25 LUT4
         decrypt datapath)                on iCE40)
               |
               +-> aes_round (combinational SubBytes / ShiftRows /
@@ -129,8 +126,8 @@ Detailed handshake timing in [`PORT_DESCRIPTION.md`](PORT_DESCRIPTION.md).
 
 ## Headline numbers
 
-Real numbers from `make synth_report` (Yosys 0.x, XTS top with all
-sub-modules):
+Unverified estimates attributed to `make synth_report` (Yosys 0.x, XTS
+top with all sub-modules). They have not been independently reproduced:
 
 | Target           | LUT       | FF    | BRAM | Latency (4-KB sector)  | Notes                  |
 |------------------|-----------|-------|------|------------------------|------------------------|
@@ -138,10 +135,11 @@ sub-modules):
 | ECP5 LFE5UM-25   | see `SYNTH_REPORT.md` | ~2000 | 0    | ~430 cycles            | abc9, no DSP inference |
 | Xilinx Artix-7   | see `SYNTH_REPORT.md` | ~2000 | 0    | ~430 cycles            | Yosys generic mapping  |
 
-The 16x AES S-box LUT network and the 11x round-key registers dominate
-area cost. The GF(2^128) alpha-multiplier is essentially free
-(~25 LUT4). Vendor flows (Vivado / Diamond / Quartus) fold the S-boxes
-into block RAM and the gate count drops sharply; `synth_xilinx` shown
+The 16x AES S-box LUT network and the 11x round-key registers are
+expected to dominate area cost. The GF(2^128) alpha-multiplier is
+expected to be small (~25 LUT4, unverified estimate). Vendor flows
+(Vivado / Diamond / Quartus) are expected to fold the S-boxes into block
+RAM and reduce the gate count (unverified); `synth_xilinx` shown
 here uses the open generic mapping. See
 [`RESOURCE_ESTIMATES.md`](RESOURCE_ESTIMATES.md) for the full breakdown
 and reduction options.
@@ -156,11 +154,13 @@ make lint            # static check the RTL (sbox + key_expand + round +
 make test            # build and run XTS test suite (IEEE 1619 + random)
 ```
 
-A passing run ends with `+PASS all tests passed` and exits 0.
+The harness is written to end a passing run with `+PASS all tests passed` and
+exit 0. No passing run has been independently confirmed.
 
 ## Verification
 
-Three orthogonal techniques are wired into the testbench.
+Three techniques are wired into the testbench. Test vectors are included;
+results not independently confirmed.
 
 ### Directed tests
 
@@ -173,12 +173,12 @@ Three orthogonal techniques are wired into the testbench.
 | 5 | 4-KB sector round-trip                     | 32-block sector encrypt+decrypt identity             |
 | 6 | CTS lengths 17, 23, 31                     | Ciphertext stealing round-trip                       |
 | 7 | Sector independence                        | Same key+pt, different sectors -> different ct       |
-| 8 | 100 cross-validated random vectors         | `cryptography.hazmat.primitives.ciphers.modes.XTS`   |
+| 8 | 100 random cross-validation vectors        | `cryptography.hazmat.primitives.ciphers.modes.XTS`   |
 
 ### SystemVerilog assertions
 
-`tb/aes_xts_assertions.sv` enforces protocol invariants on every cycle
-of every test:
+`tb/aes_xts_assertions.sv` is intended to check protocol invariants on
+every cycle of every test:
 
 - `data_ready_o` only rises after `init_i` has been seen.
 - `result_o` is stable while back-pressured (`result_valid_o && !result_ready_i`).
@@ -187,13 +187,14 @@ of every test:
   (catches a stuck FSM).
 - `data_ready_o` is low during `init_i` (T must derive first).
 
-The assertions compile with both Verilator 5.x (`--assert`) and Vivado
-xsim. They are stripped on synthesis flows via `` `ifndef SYNTHESIS ``.
+The assertions are intended to compile with both Verilator 5.x (`--assert`)
+and Vivado xsim (not independently confirmed). They are stripped on synthesis flows via `` `ifndef SYNTHESIS ``.
 
 ### Functional coverage
 
 `tb/aes_xts_cov.sv` collects 10 bins. The simulator prints a coverage
-summary at end-of-test:
+summary at end-of-test in this format (illustrative output; results not
+independently confirmed):
 
 ```
 ---- Functional coverage ----
@@ -205,7 +206,7 @@ summary at end-of-test:
 Coverage: 10/10 bins (100.0%)
 ```
 
-A regression that drops below 100% fails the gate.
+The harness is intended to fail a run that drops below 100%.
 
 ### Synthesis comparison report
 
@@ -217,14 +218,14 @@ when not on `$PATH`.
 
 ## Variants
 
-| Variant                             | Use case                                                                       | Tier   |
-|-------------------------------------|--------------------------------------------------------------------------------|--------|
-| `rtl/aes_xts_top.sv`                | Default XTS top: encrypt / decrypt, aligned + CTS sectors, single clock domain | GPL    |
-| `rtl/aes_core.sv`                   | AES-128 core only (no XTS)                                                     | GPL    |
-| `rtl/gf128_mul_alpha.sv`            | GF(2^128) alpha-multiplier only (combinational)                                | GPL    |
-| `vhdl_wrapper/aes_xts_top_vhdl.vhd` | VHDL-2008 entity wrapping the SV core for VHDL-only designs                    | All    |
+| Variant                             | Use case                                                                       |
+|-------------------------------------|--------------------------------------------------------------------------------|
+| `rtl/aes_xts_top.sv`                | Default XTS top: encrypt / decrypt, aligned + CTS sectors, single clock domain |
+| `rtl/aes_core.sv`                   | AES-128 core only (no XTS)                                                     |
+| `rtl/gf128_mul_alpha.sv`            | GF(2^128) alpha-multiplier only (combinational)                                |
+| `vhdl_wrapper/aes_xts_top_vhdl.vhd` | VHDL-2008 entity wrapping the SV core for VHDL-only designs                    |
 
-Premium tier (on roadmap, not yet shipped):
+Roadmap (not implemented; the figures are unverified estimates):
 * AES-XTS-256 (256-bit data + 256-bit tweak key, ~1.4x area).
 * Two-engine top: T-derivation in parallel with first data block (~1.8x area, -12 cycle latency).
 * Pipelined AES (1 keystream block per cycle, ~10x AES area).
@@ -239,8 +240,8 @@ Dual-licensed:
 - **GPL-3.0-or-later** for open-source projects. If your product links
   this RTL or its compiled bitstream, your project must also be
   GPL-3.0+.
-- **Commercial license** for closed-source products. See
-  [`LICENSE.md`](LICENSE.md) for the legal text and an FAQ.
+- **Commercial license** for closed-source products. Commercial licenses are available on request: open a GitHub issue titled 'Commercial license request'. Do not post confidential details in the issue. Any commercial license is provided as is, without warranty, support or maintenance. This core is unverified (see README).
+  See [`LICENSE.md`](LICENSE.md) for the license text.
 
 If unsure which applies, read `LICENSE.md` or open an issue.
 
@@ -275,7 +276,8 @@ Bug reports and patches welcome. Process:
 1. File an issue first for non-trivial changes.
 2. Fork, branch, and run `make lint test` locally.
 3. Open a pull request with a description of what changed and why.
-4. CI runs the full test suite plus `synth_report`; both must be green.
+4. There is no CI; include the output of your local `make lint test` run
+   in the pull request.
 
 ## Citation
 
@@ -298,8 +300,6 @@ Bug reports and patches welcome. Process:
   January 2010.
 - M. V. Ball, C. Hall, M. Kucherawy, *XTS-AES Cipher Mode of
   Operation*, IEEE 1619 Working Group, 2007.
-- IETF RFC 8009, *AES Encryption with HMAC-SHA2 for Kerberos 5*,
-  October 2016 (XTS used in storage extensions).
 
 ## Author
 

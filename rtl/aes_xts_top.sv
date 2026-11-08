@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 //
 // AES-XTS-128 top (IEEE Std 1619-2018, "XTS-AES" tweakable cipher used
 // by every modern full-disk encryption layer: BitLocker, FileVault 2,

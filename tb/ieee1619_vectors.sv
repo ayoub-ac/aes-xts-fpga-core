@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 //
 // IEEE Std 1619-2018 Annex B "XTS-AES test vectors", Vectors 1..5
 // (the AES-128 / 256-bit-XTS-key cases). The harness in sim_main.cpp

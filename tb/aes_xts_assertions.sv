@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 //
 // SVA assertions for aes_xts_top. Properties cover protocol invariants
 // enforced on every cycle of every test:

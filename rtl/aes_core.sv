@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-3.0-or-later OR Commercial
+// SPDX-License-Identifier: GPL-3.0-or-later OR LicenseRef-Commercial
 // AES-128 iterative core (FIPS-197).
 //
 // Architecture: 1 round per cycle, shared encrypt/decrypt datapath.
